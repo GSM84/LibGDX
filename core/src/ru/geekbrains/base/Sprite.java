@@ -44,6 +44,12 @@ public abstract class Sprite extends Rect {
 
     public void touchDown(Vector2 touch, int pointer, int button){};
 
+    public void touchUp(Vector2 touch, int pointer, int button){};
+
+    public void keyTyped(char character){};
+
+    public void keyDown(int keycode){};
+
     // add same contructions for touchUp/touchDragged
 
     public float getAngle() {
