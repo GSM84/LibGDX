@@ -6,63 +6,60 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.BaseScreen;
+import ru.geekbrains.math.Rect;
+import ru.geekbrains.sprite.Background;
+import ru.geekbrains.sprite.Logo;
 
 public class MenuScreen extends BaseScreen {
 
     private Texture img;
-    private Texture background;
-    private Vector2 touch;
-    private Vector2 v;
-    private Vector2 pos;
-    private float   dist;
+    private Texture bg;
+
+    private Background background;
+    private Logo       logo;
 
     @Override
     public void show() {
         super.show();
-        img        = new Texture("badlogic.jpg");
-        background = new Texture("planet.jpg");
+        img   = new Texture("badlogic.jpg");
+        bg    = new Texture("planet4.jpg");
+        background = new Background(bg);
+        logo       = new Logo(img);
 
-        touch = new Vector2();
-        v     = new Vector2();
-        pos   = new Vector2();
-        dist  = 0;
     }
 
     @Override
     public void render(float delta) {
         super.render(delta);
+        Gdx.gl.glClearColor(0.5f, 0.9f, 0.4f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //repeat while distance not finished
-        if (dist > 0){
-            pos.add(v);
-            dist -= v.len();
-        }
-
         batch.begin();
-        batch.draw(background,0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
-        batch.draw(img, pos.x, pos.y);
+        background.drow(batch);
+        logo.drow(batch);
+
+        logo.update(0f);
+
         batch.end();
     }
 
     @Override
     public void dispose() {
         img.dispose();
+        bg.dispose();
         super.dispose();
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        super.touchDown(screenX, screenY, pointer, button);
-        //get click coords
-        touch.set(screenX, Gdx.graphics.getHeight() - screenY);
-
-        //calculate distance
-        dist = touch.sub(pos).len();
-        //define velocity
-        v = touch.scl(0.01f);
-
-        return false;
+    public void resize(Rect worldBounds) {
+        super.resize(worldBounds);
+        background.resize(worldBounds);
+        logo.resize(worldBounds);
     }
 
+    @Override
+    public boolean touchDown(Vector2 touch, int pointer, int button) {
+        logo.touchDown(touch, pointer, button);
+        return false;
+    }
 }
