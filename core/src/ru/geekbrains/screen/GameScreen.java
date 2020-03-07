@@ -1,14 +1,15 @@
 package ru.geekbrains.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.BaseScreen;
 import ru.geekbrains.math.Rect;
+import ru.geekbrains.pool.BulletPool;
 import ru.geekbrains.sprite.Background;
 import ru.geekbrains.sprite.MainShip;
 import ru.geekbrains.sprite.Star;
@@ -20,6 +21,9 @@ public class GameScreen extends BaseScreen {
     private Star stars[] = new Star[STAR_COUNT];
 
     private MainShip     mainShip;
+
+    private BulletPool bulletPool;
+    private Sound      bulletSound;
 
     private TextureAtlas atlas;
 
@@ -38,15 +42,17 @@ public class GameScreen extends BaseScreen {
         for (int i = 0; i < STAR_COUNT; i++) {
             stars[i] = new Star(atlas);
         }
-        TextureRegion temp = new TextureRegion(atlas.findRegion("main_ship"));
-        temp.setRegionWidth(temp.getRegionWidth() / 2);
 
-        mainShip   = new MainShip(temp);
+        bulletPool  = new BulletPool();
+        bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
+        mainShip    = new MainShip(atlas, bulletPool, bulletSound);
+
     }
 
     @Override
     public void render(float delta) {
         update(delta);
+        freeAllDestroyed();
         drow();
     }
 
@@ -64,6 +70,8 @@ public class GameScreen extends BaseScreen {
     public void dispose() {
         atlas.dispose();
         bg.dispose();
+        bulletPool.dispose();
+        bulletSound.dispose();
 
         super.dispose();
     }
@@ -76,11 +84,13 @@ public class GameScreen extends BaseScreen {
 
     @Override
     public boolean keyUp(int keycode) {
-        return super.keyUp(keycode);
+        mainShip.keyUp(keycode);
+        return false;
     }
 
     @Override
     public boolean keyTyped(char character) {
+        mainShip.keyTyped(character);
         return false;
     }
 
@@ -100,6 +110,11 @@ public class GameScreen extends BaseScreen {
             stars[i].update(delta);
         }
         mainShip.update(delta);
+        bulletPool.updateActiveSprites(delta);
+    }
+
+    private void freeAllDestroyed(){
+        bulletPool.freeAllDestroyedActiveObjects();
     }
 
     private void drow(){
@@ -113,7 +128,7 @@ public class GameScreen extends BaseScreen {
             stars[i].drow(batch);
         }
         mainShip.drow(batch);
-
+        bulletPool.drowAcriveObjects(batch);
         batch.end();
     }
 }
