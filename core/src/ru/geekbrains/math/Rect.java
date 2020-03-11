@@ -104,4 +104,8 @@ public class Rect {
     public String toString() {
         return "Rectangle: pos" + pos + " size(" + getWidth() + ", " + getHeight() + ")";
     }
+
+    public boolean isInWorld(Rect _other){
+        return getTop()<= _other.getTop();
+    }
 }

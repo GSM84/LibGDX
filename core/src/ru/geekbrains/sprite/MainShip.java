@@ -3,37 +3,33 @@ package ru.geekbrains.sprite;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.Ship;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.pool.BulletPool;
+import ru.geekbrains.pool.ExplosionPool;
 
 public class MainShip extends Ship {
 
     private boolean isPressedLeft  = false;
     private boolean isPressedRight = false;
 
-    private       BulletPool    bulletPool;
-    private       TextureRegion bulletRegion;
-    private final Vector2       bulletV;
-    private final Vector2       bulletPositon;
-
-    private       float         shootingTimer;
-    private       float         shootingInterval = 0.3f;
-
     private Vector2 touch;
-    private float dist = 0;
-    private Rect worldBuonds;
 
-    public MainShip(TextureAtlas _atlas, BulletPool _bulletPool, Sound _bulletSound) {
-        super(_atlas.findRegion("main_ship"), 1, 2, 2, _bulletSound);
-        this.touch          = new Vector2();
-        this.bulletPool     = _bulletPool;
-        this.bulletRegion   = _atlas.findRegion("bulletMainShip");
-        this.bulletV        = new Vector2(0, 0.5f);
-        this.bulletPositon  = new Vector2();
+    public MainShip(TextureAtlas _atlas, BulletPool _bulletPool, Sound _bulletSound, ExplosionPool _explosionPool) {
+        super(_atlas.findRegion("main_ship"), 1, 2, 2);
+        this.touch            = new Vector2();
+        this.bulletV          = new Vector2(0, 0.5f);
+        this.bulletPositon    = new Vector2();
+        this.shootingInterval = 0.3f;
+        this.bulletHeight     = 0.01f;
+        this.bulletDamage     = 1;
+        this.hp               = 100;
+        this.bulletSound      = _bulletSound;
+        this.bulletPool       = _bulletPool;
+        this.bulletRegion     = _atlas.findRegion("bulletMainShip");
+        this.explosionPool    = _explosionPool;
     }
 
     @Override
@@ -61,16 +57,9 @@ public class MainShip extends Ship {
             v.setZero();
         }
 
-        pos.add(v);
-        dist -= v.len();
+        bulletPositon.set(this.pos.x, getTop() + 0.005f);
 
-        shootingTimer += delta;
-        if (shootingTimer >= shootingInterval){
-            shootingTimer = 0;
-            shoot();
-        } else {
-            //setHeightProportion(getHeight() + 0.0001f);
-        }
+        super.update(delta);
     }
 
     @Override
@@ -119,11 +108,8 @@ public class MainShip extends Ship {
         }
     }
 
-    private void shoot(){
-        Bullet bullet = bulletPool.obtain();
-        this.bulletPositon.set(this.pos.x, getTop() + 0.005f);
-        bullet.set(this, bulletRegion, this.bulletPositon, bulletV, 0.01f, worldBuonds, 1);
-        this.bulletSound.play(0.1f);
+    @Override
+    protected void shoot() {
+        super.shoot();
     }
-
 }
