@@ -55,12 +55,19 @@ public class Enemy extends Ship {
         this.v0.set(_v0);
         this.bulletV.set(0, _bulletVY);
         this.v.set(_entranceSpeed);
-        //this.vEntrence.set(_entranceSpeed);
     }
 
     @Override
     protected void shoot() {
         super.shoot();
+    }
+
+    public boolean isBulletCOllision(Rect _bullet){
+        return !(_bullet.getRight() < getLeft()
+                || _bullet.getLeft() > getRight()
+                || _bullet.getBottom() > getTop()
+                || _bullet.getTop() < pos.y);
+
     }
 
 }

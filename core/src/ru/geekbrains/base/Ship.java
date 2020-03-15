@@ -27,6 +27,9 @@ public abstract class Ship extends Sprite {
     protected float         bulletHeight;
     protected int           bulletDamage;
 
+    protected final float RELOAD_ANIMATED_INTERVAL = 0.1f;
+    protected  float damageAnimaterTimer           = RELOAD_ANIMATED_INTERVAL;
+
     protected float         shootingTimer;
     protected float         shootingInterval;
     protected int           hp;
@@ -73,6 +76,11 @@ public abstract class Ship extends Sprite {
         if (this.isInWorld(worldBuonds)) {
             reduceSpeed();
         }
+
+        damageAnimaterTimer += delta;
+        if(damageAnimaterTimer >= RELOAD_ANIMATED_INTERVAL){
+            frame = 0;
+        }
     }
 
     public void dispose(){
@@ -82,6 +90,7 @@ public abstract class Ship extends Sprite {
     @Override
     public void destroy() {
         super.destroy();
+        this.v0.setZero();
         boom();
         this.isSpeedReduced = false;
     }
@@ -96,6 +105,19 @@ public abstract class Ship extends Sprite {
             this.v.set(v0);
             this.isSpeedReduced = true;
         }
+    }
 
+    public void damage(int _damage){
+        this.hp -= _damage;
+        if (hp <= 0 ){
+            destroy();
+        }
+
+        damageAnimaterTimer = 0f;
+        frame = 1;
+    }
+
+    public int getHp() {
+        return hp;
     }
 }
