@@ -11,7 +11,7 @@ public class Star extends Sprite {
 
     public static final float STAR_HEIGHT = 0.005f;
 
-    private final Vector2 v;
+    protected final Vector2 v;
     private Rect  worldBounds;
 
     private float animatedTimer;
@@ -35,6 +35,18 @@ public class Star extends Sprite {
     @Override
     public void update(float delta) {
         pos.mulAdd(v, delta);
+        checkAndHandleBounds();
+
+        animatedTimer += delta;
+        if (animatedTimer >= animatedInterval){
+            animatedTimer = 0;
+            setHeightProportion(STAR_HEIGHT);
+        } else {
+            setHeightProportion(getHeight() + 0.0001f);
+        }
+    }
+
+    protected void checkAndHandleBounds(){
         if(getRight() < worldBounds.getLeft()){
             setLeft(worldBounds.getRight());
         }
@@ -44,13 +56,8 @@ public class Star extends Sprite {
         if(getTop() < worldBounds.getBottom()){
             setBottom(worldBounds.getTop());
         }
-
-        animatedTimer += delta;
-        if (animatedTimer >= animatedInterval){
-            animatedTimer = 0;
-            setHeightProportion(STAR_HEIGHT);
-        } else {
-            setHeightProportion(getHeight() + 0.0001f);
+        if (getBottom() > worldBounds.getTop()){
+            setTop(worldBounds.getBottom());
         }
     }
 }

@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.math.Rnd;
 import ru.geekbrains.pool.EnemyPool;
+import ru.geekbrains.screen.GameScreen;
 import ru.geekbrains.sprite.Enemy;
 
 public class EnemiesEmitter {
@@ -34,7 +35,6 @@ public class EnemiesEmitter {
 
     private Rect worldBounds;
 
-
     private float generateInterval = 2f;
     private float generateTimer;
 
@@ -45,7 +45,6 @@ public class EnemiesEmitter {
     private final Vector2 enemySmallV  = new Vector2(0f, -0.002f);
     private final Vector2 enemyMediumV = new Vector2(0f, -0.0015f);
     private final Vector2 enemyLargeV  = new Vector2(0f, -0.001f);
-
 
     private final Vector2 entranceSpeed  = new Vector2(0f, -0.005f);
 
@@ -62,12 +61,14 @@ public class EnemiesEmitter {
         this.worldBounds        = _worldBounds;
     }
 
-    public void generate(float delta){
+    public void generate(float delta, int _frags){
         generateTimer += delta;
+        int level     = _frags / 10 + 1;
+        GameScreen.setLevel(level);
         if (generateTimer >= generateInterval){
             generateTimer = 0f;
-            Enemy enemy = enemyPool.obtain();
-            float type  = (float) Math.random();
+            Enemy enemy   = enemyPool.obtain();
+            float type    = (float) Math.random();
             if (type < 0.5f){
                 enemy.set(enemySmallRegions
                         , enemySmallV
@@ -76,7 +77,7 @@ public class EnemiesEmitter {
                         , ENEMY_SMALL_DAMAGE
                         , ENEMY_SMALL_RELOAD_INTERVAL
                         , ENEMY_SMALL_HEIHGT
-                        , ENEMY_SMALL_HP
+                        , ENEMY_SMALL_HP * level
                         , bulletRegion
                         , entranceSpeed
                 );
@@ -88,7 +89,7 @@ public class EnemiesEmitter {
                         , ENEMY_MEDIUM_DAMAGE
                         , ENEMY_MEDIUM_RELOAD_INTERVAL
                         , ENEMY_MEDIUM_HEIHGT
-                        , ENEMY_MEDIUM_HP
+                        , ENEMY_MEDIUM_HP * level
                         , bulletRegion
                         , entranceSpeed
                 );
@@ -100,12 +101,11 @@ public class EnemiesEmitter {
                         , ENEMY_LARGE_DAMAGE
                         , ENEMY_LARGE_RELOAD_INTERVAL
                         , ENEMY_LARGE_HEIHGT
-                        , ENEMY_LARGE_HP
+                        , ENEMY_LARGE_HP * level
                         , bulletRegion
                         , entranceSpeed
                 );
             }
-
 
             enemy.setBottom(worldBounds.getTop());
             enemy.pos.x = Rnd.nextFloat(worldBounds.getLeft() + enemy.getHalfWidth(), worldBounds.getRight() - enemy.getHalfWidth());

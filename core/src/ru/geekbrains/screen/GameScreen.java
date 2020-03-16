@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Align;
+
+import java.util.logging.Level;
 
 import ru.geekbrains.base.BaseScreen;
 import ru.geekbrains.math.Rect;
@@ -19,26 +22,33 @@ import ru.geekbrains.sprite.Enemy;
 import ru.geekbrains.sprite.MainShip;
 import ru.geekbrains.sprite.MessageGameOver;
 import ru.geekbrains.sprite.Star;
+import ru.geekbrains.sprite.TrackingStar;
 import ru.geekbrains.utils.EnemiesEmitter;
+import ru.geekbrains.utils.Font;
 
 public class GameScreen extends BaseScreen {
 
-    private static final int STAR_COUNT = 128;
+    private static final int    STAR_COUNT = 128;
+    private static final float  FONT_SIZE  = 0.02f;
+    private static final String FRAGS      = "Frags: ";
+    private static final String HP         = "HP: ";
+    private static final String LEVEL      = "Level: ";
+    private static final float  PADDING    = 0.01f;
 
     private enum State{PLAYING, GAME_OVER, PAUSE}
 
-    private Star stars[] = new Star[STAR_COUNT];
+    private TrackingStar stars[] = new TrackingStar[STAR_COUNT];
 
-    private MainShip     mainShip;
+    private MainShip          mainShip;
 
-    private BulletPool     bulletPool;
-    private ExplosionPool  explosionPool;
-    private EnemyPool      enemyPool;
-    private EnemiesEmitter enemiesEmitter;
+    private BulletPool        bulletPool;
+    private ExplosionPool     explosionPool;
+    private EnemyPool         enemyPool;
+    private EnemiesEmitter    enemiesEmitter;
 
-    private Sound      bulletSound;
-    private Sound      enemyBullet;
-    private Sound      explosionSound;
+    private Sound             bulletSound;
+    private Sound             enemyBullet;
+    private Sound             explosionSound;
 
     private State             state;
     private State             prevState;
@@ -46,10 +56,18 @@ public class GameScreen extends BaseScreen {
     private MessageGameOver   msgGameOver;
     private ButtonRestartGame restartGame;
 
-    private TextureAtlas atlas;
+    private TextureAtlas      atlas;
 
-    private Texture bg;
-    private Background background;
+    private Texture           bg;
+    private Background        background;
+
+    private Font              font;
+
+    private int               frags;
+    private static int        level;
+    private StringBuilder     sbFrags;
+    private StringBuilder     sbHp;
+    private StringBuilder     sbLevel;
 
     @Override
     public void show() {
@@ -60,9 +78,7 @@ public class GameScreen extends BaseScreen {
 
         atlas      = new TextureAtlas(Gdx.files.internal("textures/mainAtlas.tpack"));
 
-        for (int i = 0; i < STAR_COUNT; i++) {
-            stars[i] = new Star(atlas);
-        }
+
 
         bulletSound    = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
         enemyBullet    = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
@@ -75,6 +91,19 @@ public class GameScreen extends BaseScreen {
 
         mainShip       = new MainShip(atlas, bulletPool, bulletSound, explosionPool);
 
+        for (int i = 0; i < STAR_COUNT; i++) {
+            stars[i] = new TrackingStar(atlas, mainShip.getV());
+        }
+
+        frags          = 0;
+        level          = 1;
+
+        sbFrags        = new StringBuilder();
+        sbHp           = new StringBuilder();
+        sbLevel        = new StringBuilder();
+
+        font           = new Font("font/font.fnt", "font/font.png");
+        font.setSize(FONT_SIZE);
         state          = State.PLAYING;
         msgGameOver    = new MessageGameOver(atlas);
         restartGame    = new ButtonRestartGame(atlas, this);
@@ -111,6 +140,7 @@ public class GameScreen extends BaseScreen {
         enemyBullet.dispose();
         mainShip.dispose();
         explosionSound.dispose();
+        font.dispose();
 
         super.dispose();
     }
@@ -169,10 +199,9 @@ public class GameScreen extends BaseScreen {
             mainShip.update(delta);
             bulletPool.updateActiveSprites(delta);
             enemyPool.updateActiveSprites(delta);
-            enemiesEmitter.generate(delta);
+            enemiesEmitter.generate(delta, frags);
             checkCollisions();
         }
-
     }
 
     private void freeAllDestroyed(){
@@ -201,8 +230,17 @@ public class GameScreen extends BaseScreen {
             msgGameOver.drow(batch);
             restartGame.drow(batch);
         }
+        printInfo();
         batch.end();
+    }
 
+    private void printInfo(){
+        sbFrags.setLength(0);
+        sbHp.setLength(0);
+        sbLevel.setLength(0);
+        font.draw(batch, sbFrags.append(FRAGS).append(frags), worldBounds.getLeft()+ PADDING, worldBounds.getTop() - PADDING);
+        font.draw(batch, sbHp.append(HP).append((mainShip.getHp() >= 0)?mainShip.getHp():0), worldBounds.pos.x, worldBounds.getTop() - PADDING, Align.center);
+        font.draw(batch, sbLevel.append(LEVEL).append(level), worldBounds.getRight() - PADDING, worldBounds.getTop() - PADDING, Align.right);
     }
 
     private void checkCollisions(){
@@ -220,6 +258,9 @@ public class GameScreen extends BaseScreen {
             for (Enemy enemy : enemyPool.getActiveObjects()) {
                 if (enemy.isBulletCOllision(bullet)){
                     enemy.damage(bullet.getDamage());
+                    if (enemy.isDestroyed()){
+                        frags++;
+                    }
                     bullet.destroy();
                 }
             }
@@ -230,6 +271,7 @@ public class GameScreen extends BaseScreen {
             if(minDist >= mainShip.pos.dst(enemy.pos)){
                 mainShip.damage(enemy.getHp());
                 enemy.destroy();
+                frags++;
             }
         }
 
@@ -249,10 +291,15 @@ public class GameScreen extends BaseScreen {
 
     public void restartGame(){
         state = State.PLAYING;
+        frags = 0;
+        level = 1;
         bulletPool.freeAllActiveObjects();
         enemyPool.freeAllActiveObjects();
         explosionPool.freeAllActiveObjects();
-
         mainShip.restart();
+    }
+
+    public static void setLevel(int _level) {
+        level = _level;
     }
 }

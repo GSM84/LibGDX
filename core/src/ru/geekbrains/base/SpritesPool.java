@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.geekbrains.sprite.Enemy;
+
 public abstract class SpritesPool<T extends Sprite> {
 
     private final List<T> activeObjects = new ArrayList<>();
@@ -68,6 +70,10 @@ public abstract class SpritesPool<T extends Sprite> {
     }
 
     public void freeAllActiveObjects(){
+        for (int i = 0; i < activeObjects.size(); i++) {
+            activeObjects.get(i).destroy();
+            activeObjects.get(i).flushDestroy();
+        }
         freeObjects.addAll(activeObjects);
         activeObjects.clear();
     }
