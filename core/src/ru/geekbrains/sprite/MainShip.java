@@ -15,6 +15,8 @@ public class MainShip extends Ship {
     private boolean isPressedLeft  = false;
     private boolean isPressedRight = false;
 
+    private static final int HP = 10;
+
     private Vector2 touch;
 
     public MainShip(TextureAtlas _atlas, BulletPool _bulletPool, Sound _bulletSound, ExplosionPool _explosionPool) {
@@ -25,7 +27,7 @@ public class MainShip extends Ship {
         this.shootingInterval = 0.3f;
         this.bulletHeight     = 0.01f;
         this.bulletDamage     = 1;
-        this.hp               = 100;
+        this.hp               = HP;
         this.bulletSound      = _bulletSound;
         this.bulletPool       = _bulletPool;
         this.bulletRegion     = _atlas.findRegion("bulletMainShip");
@@ -34,7 +36,8 @@ public class MainShip extends Ship {
 
     @Override
     public void touchDown(Vector2 _touch, int pointer, int button) {
-        this.touch.set(touch);
+        System.out.println("main "+v0);
+        this.touch.set(_touch);
         if (_touch.x > pos.x){
             v.set(v0);
         } else{
@@ -111,5 +114,23 @@ public class MainShip extends Ship {
     @Override
     protected void shoot() {
         super.shoot();
+    }
+
+    public boolean isBulletCOllision(Rect _bullet){
+        return !(_bullet.getRight() < getLeft()
+                || _bullet.getLeft() > getRight()
+                || _bullet.getBottom() > pos.y
+                || _bullet.getTop() < getBottom());
+
+    }
+
+    public void restart(){
+        this.isPressedLeft  = false;
+        this.isPressedRight = false;
+        this.hp             = HP;
+        this.v0.set(0.01f, 0);
+        this.dist = 0;
+        this.pos.x          = worldBuonds.pos.x;
+        flushDestroy();
     }
 }
