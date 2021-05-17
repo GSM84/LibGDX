@@ -15,7 +15,7 @@ public class MainShip extends Ship {
     private boolean isPressedLeft  = false;
     private boolean isPressedRight = false;
 
-    private static final int HP = 10;
+    private static final int HP = 100;
 
     private Vector2 touch;
 
